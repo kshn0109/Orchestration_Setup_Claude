@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# fable — オーケストレーション層のトグル (Git Bash / Windows、コピー方式)
+#
+# 設定の本体は ~/.claude/fable/ にだけ置き、Claude Code が読む各設定ファイルには
+# そのフォルダを指す薄いローディングコードだけを置く。トグルは状態ファイルを
+# 書き換え、active.md をコピーで差し替える。
+#
+# シンボリックリンクを使わない理由: Windows でのシンボリックリンク作成は
+# SeCreateSymbolicLinkPrivilege(管理者または開発者モード)が必要で、
+# Git Bash の ln -s は権限がないとエラーではなく黙ってコピーを作ってしまうため
+# (MSYS の既定動作)、トグルできているように見えて実際には切り替わらない状態になる。
+# 最初からコピーだと明示すれば、この罠がなくなる。
+#
+#   fable on      次のセッションからオーケストレーション有効
+#   fable off     次のセッションから通常モード
+#   fable status  現在の状態 + ローディングコードの設置状況を点検
+#
+# このスクリプトは env.sh の fable() 関数が呼び出す。PATH に入れる必要はない。
+
+set -u
+
+BASE="$HOME/.claude/fable"
+SWITCH="$HOME/.claude/.fable-state"
+
+mark() { [ "$1" = 0 ] && printf '[OK]' || printf '[--]'; }
+
+case "${1:-status}" in
+  on)
+    printf 'on\n' > "$SWITCH"
+    cp -f "$BASE/instructions.md" "$BASE/active.md"
+    echo "fable: ON — 次に起動する claude セッションから適用されます。"
+    ;;
+  off)
+    printf 'off\n' > "$SWITCH"
+    cp -f "$BASE/blank.md" "$BASE/active.md"
+    echo "fable: OFF — 次に起動する claude セッションから通常モードです。"
+    ;;
+  status)
+    state=$(cat "$SWITCH" 2>/dev/null || echo off)
+    echo "fable オーケストレーション: $(echo "$state" | tr '[:lower:]' '[:upper:]')"
+
+    if [ -f "$BASE/active.md" ]; then
+      if head -n1 "$BASE/active.md" | grep -q 'fable off'; then
+        echo "  active.md = blank.md のコピー (off)"
+      else
+        echo "  active.md = instructions.md のコピー (on)"
+      fi
+    else
+      echo "  active.md = (未設置)"
+    fi
+
+    grep -q 'fable[\\/]active\.md' "$HOME/.claude/CLAUDE.md" 2>/dev/null; r1=$?
+    echo "  $(mark $r1) CLAUDE.md インポート"
+
+    { [ -f "$HOME/.claude/agents/executor.md" ] && \
+      [ -f "$HOME/.claude/agents/deep-reasoner.md" ] && \
+      [ -f "$HOME/.claude/agents/runner.md" ]; }; r2=$?
+    echo "  $(mark $r2) エージェントのコピー 3 個 (~/.claude/agents/)"
+
+    grep -q 'fable/env.sh' "$HOME/.bashrc" 2>/dev/null; r3=$?
+    echo "  $(mark $r3) シェルローダー (~/.bashrc)"
+
+    grep -q 'orchestration-gate' "$HOME/.claude/settings.json" 2>/dev/null; r4=$?
+    echo "  $(mark $r4) ゲートフックの登録 (settings.json)"
+
+    [ -f "$BASE/hooks/orchestration-gate.py" ]; r5=$?
+    echo "  $(mark $r5) ゲートスクリプトの存在"
+
+    command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1; r6=$?
+    echo "  $(mark $r6) python 実行ファイル (PATH)"
+    ;;
+  *)
+    echo "使い方: fable on | off | status" >&2
+    exit 1
+    ;;
+esac

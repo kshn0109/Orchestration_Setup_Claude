@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# fable — 오케스트레이션 계층 토글 (Git Bash / Windows, 복사 방식)
+#
+# 설정 본체는 ~/.claude/fable/ 에만 두고, Claude Code가 읽는 각 설정 파일에는
+# 그 폴더를 가리키는 얇은 로딩 코드만 둔다. 토글은 상태 파일을 바꾸고
+# active.md를 복사로 교체한다.
+#
+# 심링크를 쓰지 않는 이유: Windows에서 심링크 생성은
+# SeCreateSymbolicLinkPrivilege(관리자 또는 개발자 모드)가 필요하고,
+# Git Bash의 ln -s는 권한이 없으면 에러 대신 조용히 복사본을 만들어버려서
+# (MSYS 기본 동작) 토글이 되는 척하다가 실제로는 안 바뀌는 상태가 된다.
+# 처음부터 복사로 명시하면 이 함정이 사라진다.
+#
+#   fable on      다음 세션부터 오케스트레이션 활성
+#   fable off     다음 세션부터 일반 모드
+#   fable status  현재 상태 + 로딩 코드 설치 여부 점검
+#
+# 이 스크립트는 env.sh의 fable() 함수가 호출한다. PATH에 넣을 필요 없음.
+
+set -u
+
+BASE="$HOME/.claude/fable"
+SWITCH="$HOME/.claude/.fable-state"
+
+mark() { [ "$1" = 0 ] && printf '[OK]' || printf '[--]'; }
+
+case "${1:-status}" in
+  on)
+    printf 'on\n' > "$SWITCH"
+    cp -f "$BASE/instructions.md" "$BASE/active.md"
+    echo "fable: ON — 다음에 시작하는 claude 세션부터 적용됩니다."
+    ;;
+  off)
+    printf 'off\n' > "$SWITCH"
+    cp -f "$BASE/blank.md" "$BASE/active.md"
+    echo "fable: OFF — 다음에 시작하는 claude 세션부터 일반 모드입니다."
+    ;;
+  status)
+    state=$(cat "$SWITCH" 2>/dev/null || echo off)
+    echo "fable 오케스트레이션: $(echo "$state" | tr '[:lower:]' '[:upper:]')"
+
+    if [ -f "$BASE/active.md" ]; then
+      if head -n1 "$BASE/active.md" | grep -q 'fable off'; then
+        echo "  active.md = blank.md 사본 (off)"
+      else
+        echo "  active.md = instructions.md 사본 (on)"
+      fi
+    else
+      echo "  active.md = (미설치)"
+    fi
+
+    grep -q 'fable[\\/]active\.md' "$HOME/.claude/CLAUDE.md" 2>/dev/null; r1=$?
+    echo "  $(mark $r1) CLAUDE.md 임포트"
+
+    { [ -f "$HOME/.claude/agents/executor.md" ] && \
+      [ -f "$HOME/.claude/agents/deep-reasoner.md" ] && \
+      [ -f "$HOME/.claude/agents/runner.md" ]; }; r2=$?
+    echo "  $(mark $r2) 에이전트 사본 3개 (~/.claude/agents/)"
+
+    grep -q 'fable/env.sh' "$HOME/.bashrc" 2>/dev/null; r3=$?
+    echo "  $(mark $r3) 셸 로더 (~/.bashrc)"
+
+    grep -q 'orchestration-gate' "$HOME/.claude/settings.json" 2>/dev/null; r4=$?
+    echo "  $(mark $r4) 게이트 훅 등록 (settings.json)"
+
+    [ -f "$BASE/hooks/orchestration-gate.py" ]; r5=$?
+    echo "  $(mark $r5) 게이트 스크립트 존재"
+
+    command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1; r6=$?
+    echo "  $(mark $r6) python 실행 파일 (PATH)"
+    ;;
+  *)
+    echo "사용법: fable on | off | status" >&2
+    exit 1
+    ;;
+esac
