@@ -1,6 +1,8 @@
 # Claude Code オーケストレーション セットアップ — Git Bash 版 (指揮・実行の分離と強制ゲート)
 
-> 作成: 2026-07-31 · 対象: Windows + Git Bash + Claude Code v2.1.219 以上 (最低 v2.1.196)
+> 作成: 2026-07-31 · 対象: Windows (Git Bash) / macOS + Claude Code v2.1.219 以上 (最低 v2.1.196)
+> macOS はワンショットインストール(`install.sh`)で対応。以下の手動手順と
+> パス例は Windows + Git Bash 基準で書かれている。
 
 ## 何を作るのか
 
@@ -123,9 +125,10 @@ bash install.sh    # Windows は Git Bash から、macOS はターミナルか�
 macOS では CLAUDE.md のインポートに POSIX パス、フックの command に python3 を
 使い、シェルローダーを ~/.zshrc にも追加する。以下は手動で設置する場合の手順。
 
-## インストール
+## インストール (手動)
 
-全工程 Git Bash 基準。管理者権限は不要。まずバージョンを確認する。
+全工程 Git Bash 基準(macOS は上記ワンショットインストールを推奨)。
+管理者権限は不要。まずバージョンを確認する。
 v2.1.196 未満だとゲートのターン検出が動作しない。
 
 ```bash

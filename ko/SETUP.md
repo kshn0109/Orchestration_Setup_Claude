@@ -1,6 +1,8 @@
 # Claude Code 오케스트레이션 셋업 — Git Bash판 (지휘·실행 분리와 강제 게이트)
 
-> 작성: 2026-07-31 · 대상: Windows + Git Bash + Claude Code v2.1.219 이상 (최소 v2.1.196)
+> 작성: 2026-07-31 · 대상: Windows (Git Bash) / macOS + Claude Code v2.1.219 이상 (최소 v2.1.196)
+> macOS는 원샷 설치(`install.sh`)로 대응한다. 아래 수동 절차와 경로 예시는
+> Windows + Git Bash 기준으로 쓰여 있다.
 
 ## 무엇을 만드는가
 
@@ -120,9 +122,9 @@ bash install.sh    # Windows는 Git Bash에서, macOS는 터미널에서
 macOS에서는 CLAUDE.md 임포트에 POSIX 경로, 훅의 command에 python3을 쓰고,
 셸 로더를 ~/.zshrc에도 추가한다. 아래는 수동으로 설치하는 경우의 절차다.
 
-## 설치
+## 설치 (수동)
 
-전 과정 Git Bash 기준. 관리자 권한 불필요. 먼저 버전을 확인한다.
+전 과정 Git Bash 기준(macOS는 위의 원샷 설치를 권장). 관리자 권한 불필요. 먼저 버전을 확인한다.
 v2.1.196 미만이면 게이트의 턴 감지가 동작하지 않는다.
 
 ```bash
