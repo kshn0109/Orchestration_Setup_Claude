@@ -46,7 +46,7 @@ fi
 
 for f in instructions.md blank.md fable env.sh \
          agents/executor.md agents/deep-reasoner.md agents/runner.md \
-         hooks/orchestration-gate.py; do
+         hooks/orchestration-gate.py skills/fable-model/SKILL.md; do
   [ -f "$SRC/$f" ] || fail "배포 파일이 없습니다: $SRC/$f — 이 폴더에서 실행하세요."
 done
 
@@ -66,6 +66,10 @@ info "[ok] 본체 배치 ($BASE)"
 
 cp -f "$BASE/agents/executor.md" "$BASE/agents/deep-reasoner.md" "$BASE/agents/runner.md" "$HOME/.claude/agents/"
 info "[ok] 에이전트 사본 3개 (~/.claude/agents/)"
+
+mkdir -p "$HOME/.claude/skills/fable-model"
+cp -f "$SRC/skills/fable-model/SKILL.md" "$HOME/.claude/skills/fable-model/"
+info "[ok] /fable-model 스킬 (~/.claude/skills/fable-model/)"
 
 # --- 2) CLAUDE.md 임포트 ------------------------------------------------------
 

@@ -14,6 +14,9 @@
 #   fable on      다음 세션부터 오케스트레이션 활성
 #   fable off     다음 세션부터 일반 모드
 #   fable status  현재 상태 + 로딩 코드 설치 여부 점검
+#   fable model [역할=모델 ...]   역할별 모델 확인/변경
+#                 역할: executor | reasoner | runner
+#                 모델: fable | opus | sonnet | haiku | claude-로 시작하는 전체 ID
 #
 # 이 스크립트는 env.sh의 fable() 함수가 호출한다. PATH에 넣을 필요 없음.
 
@@ -69,8 +72,41 @@ case "${1:-status}" in
     command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1; r6=$?
     echo "  $(mark $r6) python 실행 파일 (PATH)"
     ;;
+  model)
+    shift
+    if [ $# -eq 0 ]; then
+      echo "역할별 모델 (본체 기준):"
+      for a in executor deep-reasoner runner; do
+        printf '  %-13s %s\n' "$a" "$(sed -n 's/^model: *//p' "$BASE/agents/$a.md" 2>/dev/null || echo '(미설치)')"
+      done
+      exit 0
+    fi
+    for pair in "$@"; do
+      role="${pair%%=*}"; want="${pair#*=}"
+      case "$role" in
+        executor)               f=executor ;;
+        reasoner|deep-reasoner) f=deep-reasoner ;;
+        runner)                 f=runner ;;
+        *) echo "알 수 없는 역할: $role (executor | reasoner | runner)" >&2; exit 1 ;;
+      esac
+      case "$want" in
+        fable)    id=claude-fable-5 ;;
+        opus)     id=claude-opus-5 ;;
+        sonnet)   id=claude-sonnet-5 ;;
+        haiku)    id=claude-haiku-4-5-20251001 ;;
+        claude-*) id=$want ;;
+        *) echo "알 수 없는 모델: $want (fable | opus | sonnet | haiku | claude-...)" >&2; exit 1 ;;
+      esac
+      # macOS(BSD sed)는 -i 인자 규칙이 달라서 임시 파일로 처리한다
+      sed "s/^model:.*/model: $id/" "$BASE/agents/$f.md" > "$BASE/agents/$f.md.tmp" \
+        && mv "$BASE/agents/$f.md.tmp" "$BASE/agents/$f.md"
+      cp -f "$BASE/agents/$f.md" "$HOME/.claude/agents/$f.md"
+      echo "  $f -> $id"
+    done
+    echo "다음에 시작하는 claude 세션부터 적용됩니다."
+    ;;
   *)
-    echo "사용법: fable on | off | status" >&2
+    echo "사용법: fable on | off | status | model [역할=모델 ...]" >&2
     exit 1
     ;;
 esac

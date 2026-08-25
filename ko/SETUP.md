@@ -275,12 +275,32 @@ Set-Content/Out-File 차단, 읽기 전용 명령 통과, 비코드 리다이렉
 | `fable on`     | 지침 로드 + 게이트 활성. **다음 세션부터**        |
 | `fable off`    | 전부 비활성. 로딩 코드는 그대로, 사본·상태만 전환 |
 | `fable status` | 상태와 로딩 코드 + python 존재까지 점검           |
+| `fable model`  | 역할별 모델 확인/변경 (아래 참조)                 |
 
 CLAUDE.md와 훅 설정은 세션 시작 시점에 로드되므로, 토글은 이미 떠 있는
 세션에는 적용되지 않는다. 게이트 스크립트만 도구 호출 시점마다 스위치를 읽는다.
 
 지휘자 모델 자체는 이 셋업이 건드리지 않는다. 세션 안에서 `/model`로 최상위
 모델을 기본값으로 저장해두면 그 위에 이 계층이 얹힌다.
+
+### 역할별 모델 변경
+
+서브에이전트의 모델은 각 에이전트 파일의 frontmatter `model:` 필드가 정하며,
+`fable model`이 본체와 `~/.claude/agents/` 사본을 함께 고쳐 쓴다.
+
+```bash
+fable model                                  # 현재 설정 표시
+fable model executor=sonnet reasoner=opus    # 역할=모델 형식으로 변경
+fable model runner=claude-haiku-4-5-20251001 # 전체 모델 ID도 허용
+```
+
+- 역할: `executor` | `reasoner`(deep-reasoner) | `runner`
+- 모델 별칭: `fable` | `opus` | `sonnet` | `haiku` — 스크립트가 전체 ID로
+  변환해 고정하므로 별칭 재해석의 영향을 받지 않는다.
+- 변경은 **다음 세션부터** 적용된다.
+
+Claude 세션 안에서는 설치된 `/fable-model` 스킬로 같은 작업을 할 수 있다
+(`/fable-model executor=sonnet` 또는 "실행자를 sonnet으로 바꿔줘").
 
 ## 게이트의 규칙과 한계
 
@@ -310,7 +330,8 @@ Add-Content, Tee-Object, 리다이렉트)는 개수 무관 항상 차단. 서브
 
 로딩 코드(CLAUDE.md 임포트 한 줄, `.bashrc`의 source 한 줄, settings.json
 hooks 블록)와 에이전트 사본 3개를 지우고 `~/.claude/fable/` 폴더,
-`~/.claude/.fable-state` 파일을 삭제하면 흔적 없이 사라진다.
+`~/.claude/skills/fable-model/` 폴더, `~/.claude/.fable-state` 파일을
+삭제하면 흔적 없이 사라진다.
 
 ## 참고: SDK에서 같은 원리 — advisor 전략
 

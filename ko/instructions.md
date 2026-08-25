@@ -15,8 +15,11 @@
 Agent 도구의 `model` 은 `sonnet|opus|haiku|fable` 별칭만 받으며 프론트매터를
 덮어씁니다. 즉 `model: "opus"` 를 넘기면 Opus 5 가 아닌 다른 Opus 티어로 떨어질 수
 있습니다. 실제 모델은 각 에이전트 정의의 `model:` 필드가 정합니다.
-- executor, deep-reasoner -> `claude-opus-5`
-- runner -> `claude-haiku-4-5-20251001`
+- executor, deep-reasoner -> `claude-opus-5` (기본값)
+- runner -> `claude-haiku-4-5-20251001` (기본값)
+
+위는 기본값이며 사용자가 `fable model` 또는 /fable-model 스킬로 바꿀 수
+있습니다. 모델 변경 요청을 받으면 /fable-model 스킬을 사용하세요.
 
 위임
 - 규모가 크고 진짜로 독립적인 작업만 위임하세요. 도구 몇 번이면 끝나는 일은

@@ -17,8 +17,11 @@ Agent ツールの `model` は `sonnet|opus|haiku|fable` のエイリアスし�
 frontmatter を上書きします。つまり `model: "opus"` を渡すと Opus 5 ではない別の
 Opus ティアに落ちることがあります。実際のモデルは各エージェント定義の
 `model:` フィールドが決めます。
-- executor, deep-reasoner -> `claude-opus-5`
-- runner -> `claude-haiku-4-5-20251001`
+- executor, deep-reasoner -> `claude-opus-5` (既定値)
+- runner -> `claude-haiku-4-5-20251001` (既定値)
+
+上記は既定値で、ユーザーが `fable model` または /fable-model スキルで変更
+できます。モデル変更の依頼を受けたら /fable-model スキルを使ってください。
 
 委任
 - 規模が大きく本当に独立した作業だけを委任してください。ツール数回で終わることは

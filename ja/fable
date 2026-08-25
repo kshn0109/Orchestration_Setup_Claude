@@ -14,6 +14,9 @@
 #   fable on      次のセッションからオーケストレーション有効
 #   fable off     次のセッションから通常モード
 #   fable status  現在の状態 + ローディングコードの設置状況を点検
+#   fable model [役割=モデル ...]   役割ごとのモデルを確認/変更
+#                 役割: executor | reasoner | runner
+#                 モデル: fable | opus | sonnet | haiku | claude- で始まる完全な ID
 #
 # このスクリプトは env.sh の fable() 関数が呼び出す。PATH に入れる必要はない。
 
@@ -69,8 +72,41 @@ case "${1:-status}" in
     command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1; r6=$?
     echo "  $(mark $r6) python 実行ファイル (PATH)"
     ;;
+  model)
+    shift
+    if [ $# -eq 0 ]; then
+      echo "役割ごとのモデル (本体基準):"
+      for a in executor deep-reasoner runner; do
+        printf '  %-13s %s\n' "$a" "$(sed -n 's/^model: *//p' "$BASE/agents/$a.md" 2>/dev/null || echo '(未設置)')"
+      done
+      exit 0
+    fi
+    for pair in "$@"; do
+      role="${pair%%=*}"; want="${pair#*=}"
+      case "$role" in
+        executor)               f=executor ;;
+        reasoner|deep-reasoner) f=deep-reasoner ;;
+        runner)                 f=runner ;;
+        *) echo "不明な役割: $role (executor | reasoner | runner)" >&2; exit 1 ;;
+      esac
+      case "$want" in
+        fable)    id=claude-fable-5 ;;
+        opus)     id=claude-opus-5 ;;
+        sonnet)   id=claude-sonnet-5 ;;
+        haiku)    id=claude-haiku-4-5-20251001 ;;
+        claude-*) id=$want ;;
+        *) echo "不明なモデル: $want (fable | opus | sonnet | haiku | claude-...)" >&2; exit 1 ;;
+      esac
+      # macOS(BSD sed)は -i の引数規則が異なるため一時ファイルで処理する
+      sed "s/^model:.*/model: $id/" "$BASE/agents/$f.md" > "$BASE/agents/$f.md.tmp" \
+        && mv "$BASE/agents/$f.md.tmp" "$BASE/agents/$f.md"
+      cp -f "$BASE/agents/$f.md" "$HOME/.claude/agents/$f.md"
+      echo "  $f -> $id"
+    done
+    echo "次に起動する claude セッションから適用されます。"
+    ;;
   *)
-    echo "使い方: fable on | off | status" >&2
+    echo "使い方: fable on | off | status | model [役割=モデル ...]" >&2
     exit 1
     ;;
 esac

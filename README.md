@@ -38,7 +38,11 @@ bash install.sh
 fable on      # 다음 세션부터 활성화 / 次のセッションから有効
 fable off     # 비활성화 / 無効化
 fable status  # 상태 점검 / 状態点検
+fable model executor=sonnet reasoner=opus   # 역할별 모델 변경 / 役割ごとのモデル変更
 ```
+
+역할별 모델은 Claude 세션 안에서도 `/fable-model` 스킬로 바꿀 수 있다.
+役割ごとのモデルは Claude セッション内の `/fable-model` スキルでも変更できる。
 
 완전 제거는 각 SETUP.md의 마지막 절 참조.
 完全な削除は各 SETUP.md の最終節を参照。

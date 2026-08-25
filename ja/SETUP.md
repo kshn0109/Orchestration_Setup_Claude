@@ -279,10 +279,31 @@ ls u*.ts   # u1.ts u2.ts u3.ts がすべて存在すれば正常
 | `fable on`     | 指示のロード + ゲート有効。**次のセッションから**                    |
 | `fable off`    | すべて無効。ローディングコードはそのまま、コピーと状態だけを切り替え |
 | `fable status` | 状態とローディングコード + python の存在まで点検                     |
+| `fable model`  | 役割ごとのモデルを確認/変更 (下記参照)                               |
 
 CLAUDE.md とフックの設定はセッション開始時点でロードされるので、トグルは既に
 起動しているセッションには適用されない。ゲートスクリプトだけがツール呼び出しごとに
 スイッチを読む。
+
+### 役割ごとのモデル変更
+
+サブエージェントのモデルは各エージェントファイルの frontmatter `model:`
+フィールドが決めており、`fable model` が本体と `~/.claude/agents/` のコピーを
+まとめて書き換える。
+
+```bash
+fable model                                  # 現在の設定を表示
+fable model executor=sonnet reasoner=opus    # 役割=モデル 形式で変更
+fable model runner=claude-haiku-4-5-20251001 # 完全なモデル ID も可
+```
+
+- 役割: `executor` | `reasoner`(deep-reasoner) | `runner`
+- モデルのエイリアス: `fable` | `opus` | `sonnet` | `haiku` — スクリプトが
+  完全な ID に変換して固定するので、エイリアス再解釈の影響を受けない。
+- 変更は**次のセッションから**適用される。
+
+Claude セッションの中では、設置される `/fable-model` スキルで同じ操作ができる
+(`/fable-model executor=sonnet`、または「実行役を sonnet に変えて」)。
 
 指揮者モデル自体はこのセットアップでは触らない。セッション内で `/model` から最上位
 モデルを既定値として保存しておけば、その上にこの層が乗る。
@@ -315,8 +336,8 @@ CLAUDE.md とフックの設定はセッション開始時点でロードされ�
 
 ローディングコード(CLAUDE.md のインポート 1 行、`.bashrc` の source 1 行、
 settings.json の hooks ブロック)とエージェントのコピー 3 個を消し、
-`~/.claude/fable/` フォルダと `~/.claude/.fable-state` ファイルを削除すれば
-跡形なく消える。
+`~/.claude/fable/` フォルダ、`~/.claude/skills/fable-model/` フォルダ、
+`~/.claude/.fable-state` ファイルを削除すれば跡形なく消える。
 
 ## 参考: SDK での同じ原理 — advisor 戦略
 

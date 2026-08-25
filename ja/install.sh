@@ -46,7 +46,7 @@ fi
 
 for f in instructions.md blank.md fable env.sh \
          agents/executor.md agents/deep-reasoner.md agents/runner.md \
-         hooks/orchestration-gate.py; do
+         hooks/orchestration-gate.py skills/fable-model/SKILL.md; do
   [ -f "$SRC/$f" ] || fail "配布ファイルが見つかりません: $SRC/$f — このフォルダから実行してください。"
 done
 
@@ -66,6 +66,10 @@ info "[ok] 本体を配置 ($BASE)"
 
 cp -f "$BASE/agents/executor.md" "$BASE/agents/deep-reasoner.md" "$BASE/agents/runner.md" "$HOME/.claude/agents/"
 info "[ok] エージェントのコピー 3 個 (~/.claude/agents/)"
+
+mkdir -p "$HOME/.claude/skills/fable-model"
+cp -f "$SRC/skills/fable-model/SKILL.md" "$HOME/.claude/skills/fable-model/"
+info "[ok] /fable-model スキル (~/.claude/skills/fable-model/)"
 
 # --- 2) CLAUDE.md インポート ------------------------------------------------
 
